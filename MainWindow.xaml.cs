@@ -81,17 +81,20 @@ namespace ImageLoaderMessage {
             parser = int.TryParse(resHeightStr, out resHeight);
             parser = int.TryParse(resWidthStr, out resWidth);
 
-            byte[] RGB = new byte[3];
             int RGBline = 4;
             int startPixel = 4;
 
             List<byte[]> RGBvalues = new List<byte[]>();
 
-            for (int line = 4; line < PPMdata.Length - 1; line++) {
+            for (int line = 4; line < PPMdata.Length - 1; line += 0) {
+
+                byte[] RGB = new byte[3];
+                byte RGBbyte = 0;
 
                 for (int rgb = 0; rgb < 3; rgb++) {
 
-                    parser = byte.TryParse(PPMdata[line], out RGB[rgb]);
+                    parser = byte.TryParse(PPMdata[line], out RGBbyte);
+                    RGB[rgb] = RGBbyte;
                     line++;
 
                     if (rgb == 2) {
@@ -99,8 +102,14 @@ namespace ImageLoaderMessage {
                     }
                 }
             }
+            BitmapMaker PPMbitmap = BuildBitmap(resHeight, resWidth, PPMdata, RGBvalues);
+            DisplayBitmap(PPMbitmap);
+        }
 
-            BuildBitmap(resHeight, resWidth, PPMdata, RGBvalues);
+        private void DisplayBitmap(BitmapMaker PPMbitmap) {
+            WriteableBitmap wbmImage = PPMbitmap.MakeBitmap();
+
+            imgMain.Source = wbmImage;
         }
 
         private string[] Load(string path) {
@@ -125,7 +134,7 @@ namespace ImageLoaderMessage {
             return lines;
         }
 
-        private void BuildBitmap(int resHeight, int resWidth, string[] PPMdata, List<byte[]> RGBvalues) {
+        private BitmapMaker BuildBitmap(int resHeight, int resWidth, string[] PPMdata, List<byte[]> RGBvalues) {
 
             BitmapMaker PPMbitmap = new BitmapMaker(resWidth, resHeight);
 
@@ -139,9 +148,11 @@ namespace ImageLoaderMessage {
                     byte RGBb = RGBvalues[RGBvalIndex][2];
                     PPMbitmap.SetPixel(x, y, RGBr, RGBg, RGBb);
 
-                    RGBvalIndex += 3;
+                    RGBvalIndex++;
                 }
             }
+
+            return PPMbitmap;
         }
 
         private void TxtBoxMessage_TextChanged(object sender, TextChangedEventArgs e) {
