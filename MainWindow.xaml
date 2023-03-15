@@ -1,0 +1,31 @@
+﻿<Window x:Class="ImageLoaderMessage.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ImageLoaderMessage"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="400" Width="600">
+    <Grid Height="385" VerticalAlignment="Top" OpacityMask="Black" Background="#FFFFD8A8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="11*"/>
+            <ColumnDefinition Width="9*"/>
+        </Grid.ColumnDefinitions>
+        <!-- MENU -->
+        <Menu Name ="mnuMain" VerticalAlignment="Top" Height="25" BorderBrush="#FFA5AB34" Background="#FFFFF0CF" Grid.ColumnSpan="2">
+            <MenuItem Name="muiFile" Header="File" FontFamily="Microsoft Yi Baiti" FontSize="16">
+                <MenuItem Name="muiOpenPPM" Header="Open PPM" Click="muiOpenPPM_Click">
+
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+
+        <!-- IMAGE -->
+        <Image Name="imgMain" HorizontalAlignment="Left" Height="300" Margin="11,39,0,0" VerticalAlignment="Top" Width="300" RenderTransformOrigin="0.514,0.502"/>
+        <TextBox Name="TxtBoxMessage" HorizontalAlignment="Left" Margin="35,100,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="180" Height="180" FontFamily="Microsoft Yi Baiti" FontSize="16" TextChanged="TxtBoxMessage_TextChanged" Background="#FFFFF0CF" Foreground="Black" Grid.Column="1"/>
+        <Label Content="Enter message (255 char. max)" HorizontalAlignment="Left" Height="35" Margin="25,60,0,0" VerticalAlignment="Top" Width="210" FontFamily="Microsoft Yi Baiti" FontSize="16" Grid.Column="1"/>
+        <Button Name="BtnEncrypt" Content="Encrypt" Margin="90,288,105,67" FontFamily="Microsoft Yi Baiti" FontSize="16" Click="Button_Click" Background="#FFFFF0CF" Grid.Column="1"/>
+        <Label Name="CharOflow" Content="Too many chars!" Margin="75,333,72,26" Grid.Column="1" FontFamily="Microsoft Yi Baiti" FontSize="16" Background="{x:Null}" Foreground="#FFFFD8A8"/>
+
+    </Grid>
+</Window>
