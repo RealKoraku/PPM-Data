@@ -49,6 +49,21 @@ namespace ImageLoaderMessage {
             }
         }
 
+        private void muiSavePPM_Click(object sender, RoutedEventArgs e) {
+            if (imgMain.Source == null) {
+                return;
+            } else {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+
+                saveFileDialog.DefaultExt = ".PPM";
+                saveFileDialog.Filter = "PPM Files (.ppm)|*.ppm";
+
+                bool? result = saveFileDialog.ShowDialog();
+
+                string path = saveFileDialog.FileName;
+            }
+        }
+
         private void GetPPMData(string path) {
 
             bool parser;
