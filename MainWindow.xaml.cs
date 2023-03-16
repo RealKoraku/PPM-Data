@@ -69,39 +69,41 @@ namespace ImageLoaderMessage {
         }
 
         private void GetPPMData(string path) {
-
             bool parser;
 
             string[] PPMdata = Load(path);
 
             string fileType = PPMdata[0];
-            string comment = PPMdata[1];
-            string[] imgRes = PPMdata[2].Split(" ");
-            string RGBchannel = PPMdata[3];
 
-            string resHeightStr = imgRes[0];
-            string resWidthStr = imgRes[1];
-            int resHeight;
-            int resWidth;
-
-            parser = int.TryParse(resHeightStr, out resHeight);
-            parser = int.TryParse(resWidthStr, out resWidth);
-
-            List<byte[]> RGBvalues = new List<byte[]>();
-
-            if (fileType == "P3") {
-                RGBvalues = ReadP3(PPMdata, resHeight, resWidth);
-
-            } else if (fileType == "P6") {
-                RGBvalues = ReadP6(PPMdata, resHeight, resWidth);
-
-            } else {
+            if ((fileType != "P3" && fileType != "P6") || PPMdata.Length < 5) {
                 CharOflow.Foreground = Brushes.Red;
                 CharOflow.Content = "Invalid file format";
-            }
+            } else {
 
-            BitmapMaker PPMbitmap = BuildBitmap(resHeight, resWidth, PPMdata, RGBvalues);
-            DisplayBitmap(PPMbitmap);
+                string comment = PPMdata[1];
+                string[] imgRes = PPMdata[2].Split(" ");
+                string RGBchannel = PPMdata[3];
+
+                string resHeightStr = imgRes[0];
+                string resWidthStr = imgRes[1];
+                int resHeight;
+                int resWidth;
+
+                parser = int.TryParse(resHeightStr, out resHeight);
+                parser = int.TryParse(resWidthStr, out resWidth);
+
+                List<byte[]> RGBvalues = new List<byte[]>();
+
+                if (fileType == "P3") {
+                    RGBvalues = ReadP3(PPMdata, resHeight, resWidth);
+
+                } else if (fileType == "P6") {
+                    RGBvalues = ReadP6(PPMdata, resHeight, resWidth);
+                }
+
+                BitmapMaker PPMbitmap = BuildBitmap(resHeight, resWidth, PPMdata, RGBvalues);
+                DisplayBitmap(PPMbitmap);
+            }
         }
 
         private List<byte[]> ReadP3(string[] PPMdata, int resHeight, int resWidth) {
@@ -156,7 +158,7 @@ namespace ImageLoaderMessage {
             return RGBvalues;
         }
 
-            private void DisplayBitmap(BitmapMaker PPMbitmap) {
+        private void DisplayBitmap(BitmapMaker PPMbitmap) {
             WriteableBitmap wbmImage = PPMbitmap.MakeBitmap();
 
             imgMain.Source = wbmImage;
@@ -216,7 +218,6 @@ namespace ImageLoaderMessage {
         }
 
         private void Button_Click(object sender, RoutedEventArgs e) {
-
             if (TxtBoxMessage.Text.Length > 255) {
                 CharOflow.Content = "Too many chars!";
                 CharOflow.Foreground = Brushes.Red;

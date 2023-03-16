@@ -23,10 +23,10 @@
 
         <!-- IMAGE -->
         <Image Name="imgMain" HorizontalAlignment="Left" Height="300" Margin="11,39,0,0" VerticalAlignment="Top" Width="300" RenderTransformOrigin="0.514,0.502" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-        <TextBox Name="TxtBoxMessage" HorizontalAlignment="Left" Margin="35,100,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="180" Height="180" FontFamily="Microsoft Yi Baiti" FontSize="16" TextChanged="TxtBoxMessage_TextChanged" Background="#FFFFF0CF" Foreground="Black" Grid.Column="1"/>
+        <TextBox Name="TxtBoxMessage" HorizontalAlignment="Left" Margin="35,100,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="180" Height="180" FontFamily="Microsoft Yi Baiti" FontSize="16" TextChanged="TxtBoxMessage_TextChanged" Background="#FFFFF0CF" Foreground="Black" Grid.Column="1"/>
         <Label Content="Enter message (255 char. max)" HorizontalAlignment="Left" Height="35" Margin="25,60,0,0" VerticalAlignment="Top" Width="210" FontFamily="Microsoft Yi Baiti" FontSize="16" Grid.Column="1"/>
         <Button Name="BtnEncrypt" Content="Encrypt" Margin="90,288,105,67" FontFamily="Microsoft Yi Baiti" FontSize="16" Click="Button_Click" Background="#FFFFF0CF" Grid.Column="1"/>
-        <Label Name="CharOflow" Content="Too many chars!" Margin="75,333,72,26" Grid.Column="1" FontFamily="Microsoft Yi Baiti" FontSize="16" Background="{x:Null}" Foreground="#FFFFD8A8"/>
+        <Label Name="CharOflow" Content="Too many chars!" Margin="70,330,80,20" Grid.Column="1" FontFamily="Microsoft Yi Baiti" FontSize="16" Background="{x:Null}" Foreground="#FFFFD8A8"/>
 
     </Grid>
 </Window>
