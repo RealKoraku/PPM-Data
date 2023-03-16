@@ -14,13 +14,15 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
-using static System.Net.WebRequestMethods;
 
 namespace ImageLoaderMessage {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window {
+
+        public string globalPath = "";
+
         public MainWindow() {
             InitializeComponent();
 
@@ -41,6 +43,8 @@ namespace ImageLoaderMessage {
             if (result == true) {
                 //STORE FILE PATH
                 string selectedFile = openFileDialog.FileName;
+
+                globalPath = selectedFile;
 
                 //CALL LOADIMAGE METHOD
                 List<byte[]> RGBvalues = new List<byte[]>();
@@ -64,6 +68,17 @@ namespace ImageLoaderMessage {
 
                 if (path != null) {
                     FileStream outfile = new FileStream(@$"{path}", FileMode.Create);
+
+                    string buffer = LoadString(globalPath);
+
+                    char[] bufferChars = buffer.ToCharArray();
+
+                    for (int i = 0; i < bufferChars.Length; i++) {
+                        byte data = (byte)bufferChars[i];
+                        outfile.WriteByte(data);
+                    }
+
+                    outfile.Close();
                 }
             }
         }
@@ -71,7 +86,7 @@ namespace ImageLoaderMessage {
         private void GetPPMData(string path) {
             bool parser;
 
-            string[] PPMdata = Load(path);
+            string[] PPMdata = LoadArray(path);
 
             string fileType = PPMdata[0];
 
@@ -164,7 +179,7 @@ namespace ImageLoaderMessage {
             imgMain.Source = wbmImage;
         }
 
-        private string[] Load(string path) {
+        private string[] LoadArray(string path) {
             string[] lines;
             string data = "";
             string[] records;
@@ -182,6 +197,20 @@ namespace ImageLoaderMessage {
             lines = data.Split("\n");
 
             return lines;
+        }
+
+        private string LoadString(string path) {
+            string dataString = "";
+            
+            FileStream inFile = new FileStream(path, FileMode.Open);
+
+            while (inFile.Position < inFile.Length) {
+                dataString += (char)inFile.ReadByte();
+            }//end while
+
+            inFile.Close();
+
+            return dataString;
         }
 
         private BitmapMaker BuildBitmap(int resHeight, int resWidth, string[] PPMdata, List<byte[]> RGBvalues) {
