@@ -14,6 +14,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
+using System.Runtime.InteropServices;
+using Microsoft.VisualBasic.FileIO;
 
 namespace ImageLoaderMessage {
     /// <summary>
@@ -49,7 +51,8 @@ namespace ImageLoaderMessage {
                 //CALL LOADIMAGE METHOD
                 List<byte[]> RGBvalues = new List<byte[]>();
 
-                GetPPMData(selectedFile);
+                string[] PPMdata = GetPPMData(selectedFile);
+                BuildPPM(PPMdata);
             }
         }
 
@@ -83,16 +86,25 @@ namespace ImageLoaderMessage {
             }
         }
 
-        private void GetPPMData(string path) {
+        private string[] GetPPMData(string path) {
             bool parser;
 
             string[] PPMdata = LoadArray(path);
 
+            return PPMdata;
+        }
+
+        private void BuildPPM(string[] PPMdata) {
+            bool parser;
+
             string fileType = PPMdata[0];
 
+            List<byte[]> RGBvalues = new List<byte[]>();
+
             if ((fileType != "P3" && fileType != "P6") || PPMdata.Length < 5) {
-                CharOflow.Foreground = Brushes.Red;
                 CharOflow.Content = "Invalid file format";
+                CharOflow.Foreground = Brushes.Red;
+     
             } else {
 
                 string comment = PPMdata[1];
@@ -107,8 +119,6 @@ namespace ImageLoaderMessage {
                 parser = int.TryParse(resHeightStr, out resHeight);
                 parser = int.TryParse(resWidthStr, out resWidth);
 
-                List<byte[]> RGBvalues = new List<byte[]>();
-
                 if (fileType == "P3") {
                     RGBvalues = ReadP3(PPMdata, resHeight, resWidth);
 
@@ -121,7 +131,7 @@ namespace ImageLoaderMessage {
             }
         }
 
-        private List<byte[]> ReadP3(string[] PPMdata, int resHeight, int resWidth) {
+        private List<byte[]> ReadP3(string[] PPMdata, double resHeight, double resWidth) {
             bool parser;
             List<byte[]> RGBvalues = new List<byte[]>();
 
@@ -146,7 +156,7 @@ namespace ImageLoaderMessage {
             return RGBvalues;
         }
 
-        private List<byte[]> ReadP6(string[] PPMdata, int resHeight, int resWidth) {
+        private List<byte[]> ReadP6(string[] PPMdata, double resHeight, double resWidth) {
             bool parser;
             List<byte[]> RGBvalues = new List<byte[]>();
 
@@ -175,7 +185,6 @@ namespace ImageLoaderMessage {
 
         private void DisplayBitmap(BitmapMaker PPMbitmap) {
             WriteableBitmap wbmImage = PPMbitmap.MakeBitmap();
-
             imgMain.Source = wbmImage;
         }
 
@@ -234,6 +243,44 @@ namespace ImageLoaderMessage {
             return PPMbitmap;
         }
 
+        private string[] BuildEnum() {
+            string[] Encryption = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9" };   //if byte / i == wholeNum
+            return Encryption;
+        }
+
+        private void EncryptMessage(BitmapMaker PPMbitmap) {
+            string message = TxtBoxMessage.Text;
+
+            string[] encryption = BuildEnum();
+
+            double yInc = PPMbitmap.Height / 16;
+            double xInc = PPMbitmap.Width / 16;
+
+            //string fileType = PPMdata[0];
+            //
+            //if (fileType == "P3") {
+            //    RGBvalues = ReadP3(PPMdata, imgHeight, imgWidth);
+            //
+            //} else if (fileType == "P6") {
+            //    RGBvalues = ReadP6(PPMdata, imgHeight, imgWidth);
+            //}
+
+            for (int y = 0; y < PPMbitmap.Height; y += (int)yInc) {
+                for (int x = 0; x < PPMbitmap.Width; x += (int)xInc) {
+
+                    for (int msgLetter = 0; msgLetter < message.Length; msgLetter++) {
+                        for (int i = 0; i < encryption.Length; i++) {
+
+                            byte[] pixelData = PPMbitmap.GetPixelData(x, y);
+                            if (pixelData[1] / i == 
+
+
+                        }
+                    }
+                }
+            }
+        }
+
         private void TxtBoxMessage_TextChanged(object sender, TextChangedEventArgs e) {
             string message;
 
@@ -251,8 +298,40 @@ namespace ImageLoaderMessage {
                 CharOflow.Content = "Too many chars!";
                 CharOflow.Foreground = Brushes.Red;
                 return;
+            } else if (imgMain.Source == null) {
+                CharOflow.Content = "No file selected";
+                CharOflow.Foreground = Brushes.Red;
+                return;
+            } else if (TxtBoxMessage.Text.Length == 0) {
+                CharOflow.Content = "No message entered";
+                CharOflow.Foreground = Brushes.Red;
+                return;
+
             } else {
                 HideOflowLabel();
+
+                List<byte[]> RGBvalues = new List<byte[]>();
+
+                string[] PPMdata = GetPPMData(globalPath);
+
+                double imgHeight = imgMain.Source.Height;
+                double imgWidth = imgMain.Source.Width;
+
+                string fileType = PPMdata[0];
+
+                if (imgHeight < 16 || imgWidth < 16) {
+                    CharOflow.Content = "Image must be 16x16 or greater";
+                    CharOflow.Foreground = Brushes.Red;
+                } else {
+
+                    if (fileType == "P3") {
+                        RGBvalues = ReadP3(PPMdata, imgHeight, imgWidth);
+
+                    } else if (fileType == "P6") {
+                        RGBvalues = ReadP6(PPMdata, imgHeight, imgWidth);
+                    }
+                }
+                EncryptMessage(RGBvalues, PPMdata, imgHeight, imgWidth);
             }
         }
 
