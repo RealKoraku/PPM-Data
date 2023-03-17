@@ -1,21 +1,11 @@
-﻿using System;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.VisualBasic.FileIO;
 
 namespace ImageLoaderMessage {
     /// <summary>
@@ -24,6 +14,7 @@ namespace ImageLoaderMessage {
     public partial class MainWindow : Window {
 
         public string globalPath = "";
+        public BitmapMaker PPMbitmap = new BitmapMaker(0, 0);
 
         public MainWindow() {
             InitializeComponent();
@@ -120,18 +111,18 @@ namespace ImageLoaderMessage {
                 parser = int.TryParse(resWidthStr, out resWidth);
 
                 if (fileType == "P3") {
-                    RGBvalues = ReadP3(PPMdata, resHeight, resWidth);
+                    RGBvalues = ReadP3(PPMdata);
 
                 } else if (fileType == "P6") {
-                    RGBvalues = ReadP6(PPMdata, resHeight, resWidth);
+                    RGBvalues = ReadP6(PPMdata);
                 }
 
-                BitmapMaker PPMbitmap = BuildBitmap(resHeight, resWidth, PPMdata, RGBvalues);
+                PPMbitmap = BuildBitmap(resHeight, resWidth, PPMdata, RGBvalues, PPMbitmap);
                 DisplayBitmap(PPMbitmap);
             }
         }
 
-        private List<byte[]> ReadP3(string[] PPMdata, double resHeight, double resWidth) {
+        private List<byte[]> ReadP3(string[] PPMdata) {
             bool parser;
             List<byte[]> RGBvalues = new List<byte[]>();
 
@@ -156,7 +147,7 @@ namespace ImageLoaderMessage {
             return RGBvalues;
         }
 
-        private List<byte[]> ReadP6(string[] PPMdata, double resHeight, double resWidth) {
+        private List<byte[]> ReadP6(string[] PPMdata) {
             bool parser;
             List<byte[]> RGBvalues = new List<byte[]>();
 
@@ -222,9 +213,9 @@ namespace ImageLoaderMessage {
             return dataString;
         }
 
-        private BitmapMaker BuildBitmap(int resHeight, int resWidth, string[] PPMdata, List<byte[]> RGBvalues) {
+        private BitmapMaker BuildBitmap(int resHeight, int resWidth, string[] PPMdata, List<byte[]> RGBvalues, BitmapMaker PPMbitmap) {
 
-            BitmapMaker PPMbitmap = new BitmapMaker(resWidth, resHeight);
+            PPMbitmap = new BitmapMaker(resWidth, resHeight);
 
             int RGBvalIndex = 0;
 
@@ -243,43 +234,96 @@ namespace ImageLoaderMessage {
             return PPMbitmap;
         }
 
-        private string[] BuildEnum() {
-            string[] Encryption = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9" };   //if byte / i == wholeNum
-            return Encryption;
+        private char[] BuildChars() {
+            char[] encryptionChars = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9' };   //if byte / i == wholeNum
+            char[] encryption = new char[256];
+
+            int j = 0;
+
+            for (int i = 0; i < encryption.Length; i++) {
+
+                    encryption[i] = encryptionChars[j];
+
+                if (j == encryptionChars.Count() - 1) {
+                    j = 0;
+                } else {
+                    j++;
+                }
+            }
+            return encryption;
         }
 
-        private void EncryptMessage(BitmapMaker PPMbitmap) {
+        private int[] BuildVals() {
+            int[] encryption = new int[256];        
+            
+            for (int i = 0; i < encryption.Length; i++) {
+                encryption[i] = i;
+            }
+            return encryption;
+        }
+
+        private BitmapMaker EncryptMessage(BitmapMaker PPMbitmap) {
+
             string message = TxtBoxMessage.Text;
 
-            string[] encryption = BuildEnum();
+            BitmapMaker encryptedBitmap = PPMbitmap;
+
+            char[] encryptionChars = BuildChars();
+            int[] encryptionVals = BuildVals();
 
             double yInc = PPMbitmap.Height / 16;
             double xInc = PPMbitmap.Width / 16;
 
-            //string fileType = PPMdata[0];
-            //
-            //if (fileType == "P3") {
-            //    RGBvalues = ReadP3(PPMdata, imgHeight, imgWidth);
-            //
-            //} else if (fileType == "P6") {
-            //    RGBvalues = ReadP6(PPMdata, imgHeight, imgWidth);
-            //}
+            bool valEncrypted = false;
 
-            for (int y = 0; y < PPMbitmap.Height; y += (int)yInc) {
-                for (int x = 0; x < PPMbitmap.Width; x += (int)xInc) {
+            int yStart = 0;
+            int xStart = 0;
 
-                    for (int msgLetter = 0; msgLetter < message.Length; msgLetter++) {
-                        for (int i = 0; i < encryption.Length; i++) {
+            int y = 0;
+            int x = 0;
 
-                            byte[] pixelData = PPMbitmap.GetPixelData(x, y);
-                            if (pixelData[1] / i == 
+            for (int msgChar = 0; msgChar < message.Length; msgChar++) {
+                char letter = message[msgChar];
 
+                x += (int)xInc;
 
+                for (x = xStart; x < PPMbitmap.Width; x += 0) {
+                    x += (int)xInc;
+
+                    if (x >= PPMbitmap.Width) {
+                        x = 0;
+                        y += (int)yInc;
+                    }//scan bitmap     
+
+                    byte[] pixelData = PPMbitmap.GetPixelData(x, y);
+                    int rVal = pixelData[0];                           //get red pixel (adjustment pixel)
+
+                    for (int encVal = rVal; encVal < 256; encVal++) {
+                        if (letter == encryptionChars[encVal]) {
+                            pixelData[0] = (byte)encVal;
+                            valEncrypted = true;
+
+                            byte[] RGBpixel = { pixelData[0], pixelData[1], pixelData[2] };
+                            encryptedBitmap.SetPixel(x, y, RGBpixel[0], RGBpixel[1], RGBpixel[2]);
+
+                            yStart = y;
+                            xStart = x;
+
+                            break;
+
+                        } else {
+                            if (encVal == 255) {
+                                encVal = 220;
+                            }
                         }
                     }
+                    break;
                 }
             }
+            return encryptedBitmap;
         }
+  
+    
 
         private void TxtBoxMessage_TextChanged(object sender, TextChangedEventArgs e) {
             string message;
@@ -324,14 +368,9 @@ namespace ImageLoaderMessage {
                     CharOflow.Foreground = Brushes.Red;
                 } else {
 
-                    if (fileType == "P3") {
-                        RGBvalues = ReadP3(PPMdata, imgHeight, imgWidth);
-
-                    } else if (fileType == "P6") {
-                        RGBvalues = ReadP6(PPMdata, imgHeight, imgWidth);
-                    }
+                    BitmapMaker encryptedBitmap = EncryptMessage(PPMbitmap);
+                    imgMain.Source = encryptedBitmap.MakeBitmap();
                 }
-                EncryptMessage(RGBvalues, PPMdata, imgHeight, imgWidth);
             }
         }
 
