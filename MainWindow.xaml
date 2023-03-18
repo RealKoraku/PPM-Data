@@ -16,7 +16,9 @@
             <MenuItem Name="muiFile" Header="File" FontFamily="Microsoft Yi Baiti" FontSize="16">
                 <MenuItem Name="muiOpenPPM" Header="Open PPM" Click="muiOpenPPM_Click">
                 </MenuItem>
-                <MenuItem Name="muiSavePPM" Header="Save PPM" Click="muiSavePPM_Click">
+                <MenuItem Name="muiSavePPM" Header="Save As...">
+                    <MenuItem Name="muiSaveP3" Header="P3 .ppm" Click="muiSaveP3_Click"/>
+                    <MenuItem Name="muiSaveP6" Header="P6 .ppm" Click="muiSaveP6_Click"/>
                 </MenuItem>
             </MenuItem>
         </Menu>
