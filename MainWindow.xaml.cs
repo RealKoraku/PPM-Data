@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Printing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -95,9 +96,12 @@ namespace ImageLoaderMessage {
      
             } else {
 
-                string comment = PPMdata[1];                                        //comment is 2nd line
-                string[] imgRes = PPMdata[2].Split(" ");                            //resolution is 3rd line
-                string RGBchannel = PPMdata[3];                                     //RGB max channel is 4th line
+                string[] comment = GetComments(PPMdata);                            //gather comments into array
+
+                int line = comment.Length + 1;                                      //line after comments
+
+                string[] imgRes = PPMdata[line].Split(" ");                         //gather resolution info
+                string RGBchannel = PPMdata[line+=1];                               //RGB max channel next line
 
                 int resHeight;
                 int resWidth;
@@ -117,13 +121,33 @@ namespace ImageLoaderMessage {
             }
         }
 
+        private string[] GetComments(string[] PPMdata) {
+            int comments = 0;
+
+            for (int commentLine = 1; commentLine < PPMdata.Length; commentLine++) {
+                if (PPMdata[commentLine][0] == '#') {
+                    comments++;
+                } else {
+                    break;
+                }
+            }
+            string[] comment = new string[comments];
+
+            for (int line = 1; line <= comment.Length; line++) {
+                comment[line-1] = PPMdata[line];
+            }
+            return comment;
+        }
+
         private List<byte[]> ReadP3(string[] PPMdata) {                     //Read P3
             bool parser;
+            string[] comment = GetComments(PPMdata);
+
             List<byte[]> RGBvalues = new List<byte[]>();
 
             HideOflowLabel();
 
-            for (int line = 4; line < PPMdata.Length - 1; line += 0) {      //for each line in ppm text, starting at 4
+            for (int line = comment.Length +3; line < PPMdata.Length - 1; line += 0) {      //for each line in ppm text, starting after header data
 
                 byte[] RGB = new byte[3];                                   //byte array for RGB data
                 byte RGBbyte = 0;                                           //single byte for R/G/B
@@ -142,13 +166,15 @@ namespace ImageLoaderMessage {
 
         private List<byte[]> ReadP6(string[] PPMdata) {                     //Read P6
             bool parser;
+            string[] comment = GetComments(PPMdata);
+
             List<byte[]> RGBvalues = new List<byte[]>();
 
             HideOflowLabel();
 
-            char[] binaryData = PPMdata[4].ToCharArray();                   //store line 4 of ppm text to char array
+            char[] binaryData = PPMdata[comment.Length +3].ToCharArray();   //store binary data chars of ppm text to char array
 
-            for (int bytes = 0; bytes < binaryData.Length; bytes+= 0) {    //for each character in the binary data array
+            for (int bytes = 0; bytes < binaryData.Length; bytes+= 0) {     //for each character in the binary data array
 
                 byte[] RGB = new byte[3];                                   //byte array for RGB data
                 byte RGBbyte = 0;                                           //single byte for R/G/B
@@ -282,7 +308,7 @@ namespace ImageLoaderMessage {
 
         #region Encryption
 
-        private char[] BuildChars() {               //create array of A-Z, 1-9, and some punctuation, repeating until it reaches 256
+        private char[] BuildChars() {               //create array of A-Z, 0-9, and some punctuation, repeating until it reaches 256
             char[] encryptionChars = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' ', '.', ',', '!', '?', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };   //if byte / i == wholeNum
             char[] encryption = new char[256];
 
@@ -334,13 +360,17 @@ namespace ImageLoaderMessage {
 
                     byte[] pixelData = PPMbitmap.GetPixelData(x, y);                                //get pixel data of current pixel
 
-                    
+                    int modVal = pixelData[2];                                                      //isolate R/G/B value (for encrypting) 
+                    int RGBIndex = 2;
 
-                    int rVal = pixelData[0];                                                        //isolate red value (for encrypting)                       <convert to function
-                                                                                                    //                                                         <convert to function
-                    for (int encVal = rVal; encVal < 256; encVal++) {                               //encVal for rgb value / encryption value                  <convert to function
-                        if (letter == encryptionChars[encVal]) {                                    //if selected letter is equal to that letter of the array  <convert to function
-                            pixelData[0] = (byte)encVal;                                            //set the red pixel to the correpsonding value             <convert to function
+                    int[] RGBinfo = DecideRGBValue(modVal, pixelData, RGBIndex);                    //decide if R, G, or B
+
+                    modVal = RGBinfo[0];                                                            //separate values
+                    RGBIndex = RGBinfo[1];
+
+                    for (int encVal = modVal; encVal < 256; encVal++) {                             //encVal for rgb value / encryption value                  
+                        if (letter == encryptionChars[encVal]) {                                    //if selected letter is equal to that letter of the array  
+                            pixelData[RGBIndex] = (byte)encVal;                                     //set the current pixel RGBIndex to the correpsonding value
 
                             byte[] RGBpixel = { pixelData[0], pixelData[1], pixelData[2] };         //reconstructed pixel data
                             encryptedBitmap.SetPixel(x, y, RGBpixel[0], RGBpixel[1], RGBpixel[2]);  //set that current pixel to the new pixel data
@@ -363,11 +393,32 @@ namespace ImageLoaderMessage {
             return encryptedBitmap;
         }
 
+        private int[] DecideRGBValue(int modVal, byte[] pixelData, int RGBIndex) {
+            int[] RGBinfo = new int[2];
+
+            if (modVal == pixelData[0]) {
+                modVal = pixelData[1];
+                RGBIndex = 1;
+
+            } else if (modVal == pixelData[1]) {
+                modVal = pixelData[2];
+                RGBIndex = 2;
+
+            } else {
+                modVal = pixelData[0];
+                RGBIndex = 0;
+            }
+
+            RGBinfo[0] = modVal;
+            RGBinfo[1] = RGBIndex;
+            return RGBinfo;
+        }
+
         #endregion
 
         #region GUI / XAML
 
-        private void TxtBoxMessage_TextChanged(object sender, TextChangedEventArgs e) {
+            private void TxtBoxMessage_TextChanged(object sender, TextChangedEventArgs e) {
             string message;
 
             if (TxtBoxMessage.Text.Length > 255) {
@@ -414,7 +465,7 @@ namespace ImageLoaderMessage {
         }
 
 
-        private void Button_Click(object sender, RoutedEventArgs e) {
+        private void BtnEncrypt_Click(object sender, RoutedEventArgs e) {
             if (TxtBoxMessage.Text.Length > 255) {
                 CharOflow.Content = "Too many chars!";
                 CharOflow.Foreground = Brushes.Red;
@@ -448,8 +499,6 @@ namespace ImageLoaderMessage {
                     BitmapMaker encryptedBitmap = EncryptMessage(PPMbitmap);
                     imgMain.Source = encryptedBitmap.MakeBitmap();
                     publicEncryptedBitmap = encryptedBitmap;
-
-                    //publicEncryptedPPM = BitmapToP3(encryptedBitmap);
                 }
             }
         }
