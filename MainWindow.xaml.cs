@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -27,256 +28,156 @@ namespace ImageLoaderMessage {
 
         #region File dialogs / Open / Save
 
-        private void muiOpenPPM_Click(object sender, RoutedEventArgs e) {
-            //CREATE OPEN FILE DIALOG
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+        private void muiOpenPPM_Click(object sender, RoutedEventArgs e) {     
 
-            //SETUP PARAMETERS FOR OPEN FILE DIALOG
-            openFileDialog.DefaultExt = ".PPM";
+            OpenFileDialog openFileDialog = new OpenFileDialog();       //create open file dialog
+
+            openFileDialog.DefaultExt = ".PPM";                         //filter to ppm files
             openFileDialog.Filter = "PPM Files (.ppm)|*.ppm";
 
-            //SHOW FILE DIALOG
-            bool? result = openFileDialog.ShowDialog();
+            bool? result = openFileDialog.ShowDialog();                 //open dialog
 
-            //PROCESS DIALOG RESULTS / DETERMINE IF FILE WAS OPENED
             if (result == true) {
-                //STORE FILE PATH
-                string selectedFile = openFileDialog.FileName;
+                string selectedFile = openFileDialog.FileName;          //store file name
 
                 globalPath = selectedFile;
 
-                //CALL LOADIMAGE METHOD
                 List<byte[]> RGBvalues = new List<byte[]>();
 
-                string[] PPMdata = GetPPMData(selectedFile);
+                string[] PPMdata = GetPPMData(selectedFile);            //convert ppm text file to string array
                 BuildPPM(PPMdata);
             }
         }
 
-        private void muiSaveP3_Click(object sender, RoutedEventArgs e) {
-            if (imgMain.Source == null) {
-                return;
-            } else if (publicEncryptedBitmap == null) {
-                //buffer = LoadString(globalPath);
-                CharOflow.Content = "Encrypt file first";
-                CharOflow.Foreground = Brushes.Red;
-                return;
+        private void SavePPM() {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();   //create save dialog
 
-            } else {
+            saveFileDialog.DefaultExt = ".PPM";                     //filter to ppm
+            saveFileDialog.Filter = "PPM Files (.ppm)|*.ppm";
 
-                publicEncryptedPPM = BitmapToP3(publicEncryptedBitmap);
+            bool? result = saveFileDialog.ShowDialog();             //open dialog
 
-                HideOflowLabel();
+            string path = saveFileDialog.FileName;
 
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
+            if (path != null) {
+                FileStream outfile = new FileStream(@$"{path}", FileMode.Create);   //create file at selected path
 
-                saveFileDialog.DefaultExt = ".PPM";
-                saveFileDialog.Filter = "PPM Files (.ppm)|*.ppm";
+                string buffer = "";
 
-                bool? result = saveFileDialog.ShowDialog();
-
-                string path = saveFileDialog.FileName;
-
-                if (path != null) {
-                    FileStream outfile = new FileStream(@$"{path}", FileMode.Create);
-
-                    string buffer = "";
-
-                    for (int line = 0; line < publicEncryptedPPM.Length; line++) {
-                        buffer += publicEncryptedPPM[line];
-                    }
-
-                    char[] bufferChars = buffer.ToCharArray();
-
-                    for (int i = 0; i < bufferChars.Length; i++) {
-                        byte data = (byte)bufferChars[i];
-                        outfile.WriteByte(data);
-                    }
-                    outfile.Close();
+                for (int line = 0; line < publicEncryptedPPM.Length; line++) {      //for each line of text in ppm
+                    buffer += publicEncryptedPPM[line];                             //add to buffer string
                 }
+
+                char[] bufferChars = buffer.ToCharArray();                          //convert string to char array
+
+                for (int i = 0; i < bufferChars.Length; i++) {                      //write each char to selected file
+                    byte data = (byte)bufferChars[i];
+                    outfile.WriteByte(data);
+                }
+                outfile.Close();                                                    //close file
             }
         }
-
-        private void muiSaveP6_Click(object sender, RoutedEventArgs e) {
-            if (imgMain.Source == null) {
-                return;
-            } else if (publicEncryptedBitmap == null) {
-                //buffer = LoadString(globalPath);
-                CharOflow.Content = "Encrypt file first";
-                CharOflow.Foreground = Brushes.Red;
-                return;
-
-            } else {
-
-                publicEncryptedPPM = BitmapToP6(publicEncryptedBitmap);
-
-                HideOflowLabel();
-
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-
-                saveFileDialog.DefaultExt = ".PPM";
-                saveFileDialog.Filter = "PPM Files (.ppm)|*.ppm";
-
-                bool? result = saveFileDialog.ShowDialog();
-
-                string path = saveFileDialog.FileName;
-
-                if (path != null) {
-                    FileStream outfile = new FileStream(@$"{path}", FileMode.Create);
-
-                    string buffer = "";
-
-                    for (int line = 0; line < publicEncryptedPPM.Length; line++) {
-
-                        for (int i = 0; i < publicEncryptedPPM[line].Length; i++) {
-                            buffer += publicEncryptedPPM[line][i];
-                        }
-                    }
-
-                    char[] bufferChars = buffer.ToCharArray();
-
-                    for (int i = 0; i < bufferChars.Length; i++) {
-                        byte data = (byte)bufferChars[i];
-                        outfile.WriteByte(data);
-                    }
-                    outfile.Close();
-                }
-            }
-        }
-        
-
-        private string LoadString(string path) {
-            string dataString = "";
-        
-            FileStream inFile = new FileStream(path, FileMode.Open);
-        
-            while (inFile.Position < inFile.Length) {
-                dataString += (char)inFile.ReadByte();
-            }//end while
-        
-            inFile.Close();
-        
-            return dataString;
-        }
-
 
         #endregion
 
         #region ReadPPM
 
-        private string[] GetPPMData(string path) {
-            bool parser;
-
-            string[] PPMdata = LoadArray(path);
-
-            return PPMdata;
-        }
-
         private void BuildPPM(string[] PPMdata) {
             bool parser;
 
-            string fileType = PPMdata[0];
+            string fileType = PPMdata[0];                                           //first line is P3 or P6
 
             List<byte[]> RGBvalues = new List<byte[]>();
 
-            if ((fileType != "P3" && fileType != "P6") || PPMdata.Length < 5) {
+            if ((fileType != "P3" && fileType != "P6") || PPMdata.Length < 5) {     //if not P3 or p6, or length < 5 (no pixel data)
                 CharOflow.Content = "Invalid file format";
-                CharOflow.Foreground = Brushes.Red;
+                CharOflow.Foreground = Brushes.Red;                                 //throw error
      
             } else {
 
-                string comment = PPMdata[1];
-                string[] imgRes = PPMdata[2].Split(" ");
-                string RGBchannel = PPMdata[3];
+                string comment = PPMdata[1];                                        //comment is 2nd line
+                string[] imgRes = PPMdata[2].Split(" ");                            //resolution is 3rd line
+                string RGBchannel = PPMdata[3];                                     //RGB max channel is 4th line
 
-                string resWidthStr = imgRes[0];
-                string resHeightStr = imgRes[1];
                 int resHeight;
                 int resWidth;
 
-                parser = int.TryParse(resHeightStr, out resHeight);
-                parser = int.TryParse(resWidthStr, out resWidth);
+                parser = int.TryParse(imgRes[0], out resHeight);                    //split height and width
+                parser = int.TryParse(imgRes[1], out resWidth);
 
-                if (fileType == "P3") {
-                    RGBvalues = ReadP3(PPMdata);
+                if (fileType == "P3") {                                             //determine P3 or P6
+                    RGBvalues = ReadP3(PPMdata);                                    //populate RGB values
 
                 } else if (fileType == "P6") {
                     RGBvalues = ReadP6(PPMdata);
                 }
 
-                PPMbitmap = BuildBitmap(resHeight, resWidth, RGBvalues, PPMbitmap);
-                DisplayBitmap(PPMbitmap);
+                PPMbitmap = BuildBitmap(resHeight, resWidth, RGBvalues, PPMbitmap);    //build bitmap
+                DisplayBitmap(PPMbitmap);                                              //display constructed image
             }
         }
 
-        private List<byte[]> ReadP3(string[] PPMdata) {
+        private List<byte[]> ReadP3(string[] PPMdata) {                     //Read P3
             bool parser;
             List<byte[]> RGBvalues = new List<byte[]>();
 
             HideOflowLabel();
 
-            for (int line = 4; line < PPMdata.Length - 1; line += 0) {
+            for (int line = 4; line < PPMdata.Length - 1; line += 0) {      //for each line in ppm text, starting at 4
 
-                byte[] RGB = new byte[3];
-                byte RGBbyte = 0;
+                byte[] RGB = new byte[3];                                   //byte array for RGB data
+                byte RGBbyte = 0;                                           //single byte for R/G/B
 
-                for (int rgb = 0; rgb < 3; rgb++) {
+                for (int rgb = 0; rgb < RGB.Length; rgb++) {                //for length of RGB data
 
-                    parser = byte.TryParse(PPMdata[line], out RGBbyte);
-                    RGB[rgb] = RGBbyte;
-                    line++;
-
-                    if (rgb == 2) {
-                        RGBvalues.Add(RGB);
-                    }
+                    parser = byte.TryParse(PPMdata[line], out RGBbyte);     //convert that line into a byte
+                    RGB[rgb] = RGBbyte;                                     //set current R/G/B position to that byte
+                    line++;                                                 //go to next line    
                 }
+
+                RGBvalues.Add(RGB);                                         //once pixel is populated, add to RGBvalues list
             }
             return RGBvalues;
         }
 
-        private List<byte[]> ReadP6(string[] PPMdata) {
+        private List<byte[]> ReadP6(string[] PPMdata) {                     //Read P6
             bool parser;
             List<byte[]> RGBvalues = new List<byte[]>();
 
             HideOflowLabel();
 
-            char[] binaryData = PPMdata[4].ToCharArray();
+            char[] binaryData = PPMdata[4].ToCharArray();                   //store line 4 of ppm text to char array
 
-            for (int bytes = 0; bytes < binaryData.Length; bytes += 0) {
+            for (int bytes = 0; bytes < binaryData.Length; bytes+= 0) {    //for each character in the binary data array
 
-                byte[] RGB = new byte[3];
-                byte RGBbyte = 0;
+                byte[] RGB = new byte[3];                                   //byte array for RGB data
+                byte RGBbyte = 0;                                           //single byte for R/G/B
 
-                for (int rgb = 0; rgb < 3; rgb++) {
+                for (int rgb = 0; rgb < RGB.Length; rgb++) {                //for length of RGB array             
 
-                    RGBbyte = (byte)binaryData[bytes];
-                    RGB[rgb] = RGBbyte;
-                    bytes++;
-
-                    if (rgb == 2) {
-                        RGBvalues.Add(RGB);
-                    }
+                    RGBbyte = (byte)binaryData[bytes];                      //cast current char to byte, store in R/G/B byte
+                    RGB[rgb] = RGBbyte;                                     //set current R/G/B to that byte
+                    bytes++;                                                //go to next char in binary data
                 }
+                RGBvalues.Add(RGB);                                         //once pixel is populated, add to RGBvalues list
             }
             return RGBvalues;
         }
 
-        private string[] LoadArray(string path) {
+        private string[] GetPPMData(string path) {
             string[] lines;
             string data = "";
             string[] records;
 
-            //Read data from file
-            FileStream inFile = new FileStream(path, FileMode.Open);
+            FileStream inFile = new FileStream(path, FileMode.Open);    //read data from specified file
 
-            while (inFile.Position < inFile.Length) {
-                data += (char)inFile.ReadByte();
+            while (inFile.Position < inFile.Length) {                   
+                data += (char)inFile.ReadByte();                        //add each char from text to data string
             }//end while
 
-            inFile.Close();
+            inFile.Close();                                             //close file
 
-            //Split data into records
-            lines = data.Split("\n");
+            lines = data.Split("\n");                                   //split lines into string array
 
             return lines;
         }
@@ -287,19 +188,19 @@ namespace ImageLoaderMessage {
 
         private BitmapMaker BuildBitmap(int resHeight, int resWidth, List<byte[]> RGBvalues, BitmapMaker PPMbitmap) {
 
-            PPMbitmap = new BitmapMaker(resWidth, resHeight);
+            PPMbitmap = new BitmapMaker(resWidth, resHeight);       //create Bitmap of specified height and width
 
-            int RGBvalIndex = 0;
+            int RGBvalIndex = 0;              
 
-            for (int y = 0; y < resHeight; y++) {
+            for (int y = 0; y < resHeight; y++) {                   //scan bitmap x, y
                 for (int x = 0; x < resWidth; x++) {
 
-                    byte RGBr = RGBvalues[RGBvalIndex][0];
-                    byte RGBg = RGBvalues[RGBvalIndex][1];
-                    byte RGBb = RGBvalues[RGBvalIndex][2];
-                    PPMbitmap.SetPixel(x, y, RGBr, RGBg, RGBb);
+                    byte RGBr = RGBvalues[RGBvalIndex][0];          //red value is equal to the 1st byte in array of RGBvalIndex
+                    byte RGBg = RGBvalues[RGBvalIndex][1];          //blue value is equal to 2nd byte in array
+                    byte RGBb = RGBvalues[RGBvalIndex][2];          //green = 3rd byte
+                    PPMbitmap.SetPixel(x, y, RGBr, RGBg, RGBb);     //set constructed pixel to current position
 
-                    RGBvalIndex++;
+                    RGBvalIndex++;                                  //next item in RGBvalues list
                 }
             }
 
@@ -307,50 +208,48 @@ namespace ImageLoaderMessage {
         }
 
         private void DisplayBitmap(BitmapMaker PPMbitmap) {
-            WriteableBitmap wbmImage = PPMbitmap.MakeBitmap();
-            imgMain.Source = wbmImage;
+            WriteableBitmap wbmImage = PPMbitmap.MakeBitmap();      //PPMbitmap to writeable bitmap
+            imgMain.Source = wbmImage;                              //set image box source to writeable bitmap
         }
 
         private string[] BitmapToP3(BitmapMaker encryptedBitmap) {
 
-            string[] encryptedPPM = new string[((encryptedBitmap.Height * encryptedBitmap.Width) * 3) + 4];
+            string[] encryptedPPM = new string[((encryptedBitmap.Height * encryptedBitmap.Width) * 3) + 4];     //encrypted P3 ppm length will be the resolution * 3 (3 lines for each pixel) plus four (4 lines of header data)
 
-            encryptedPPM[0] = "P3\n";
-            encryptedPPM[1] = "# File created with Koraku's PPM encryption software.\n";
-            encryptedPPM[2] = $"{encryptedBitmap.Width} {encryptedBitmap.Height}\n";
-            encryptedPPM[3] = "255\n";
+            encryptedPPM[0] = "P3\n";                                                                           //set file type
+            encryptedPPM[1] = "# File created with Koraku's PPM encryption software.\n";                        //set comment
+            encryptedPPM[2] = $"{encryptedBitmap.Width} {encryptedBitmap.Height}\n";                            //set resolution
+            encryptedPPM[3] = "255\n";                                                                          //set RGB channel
 
             int y = 0;
             int x = 0;
 
-            int line = 4;
+            int line = 4;                                               //start at line 4 of ppm
 
-            for (y = y; y < encryptedBitmap.Height; y++) {
-                if (x == encryptedBitmap.Width) {
-                    x = 0;
+            for (y = y; y < encryptedBitmap.Height; y++) {              //scan bitmap height
+                if (x == encryptedBitmap.Width) {                       //if x reaches width of bitmap
+                    x = 0;                                              //go back to leftmost position
                 }
-                for (x = x; x < encryptedBitmap.Width; x++) {
+                for (x = x; x < encryptedBitmap.Width; x++) {           //scan width
 
-                    byte[] RGB = encryptedBitmap.GetPixelData(x, y);
+                    byte[] RGB = encryptedBitmap.GetPixelData(x, y);    //byte array for current pixel in bitmap                           
 
-                    int writeLine = line;
+                    int writeLine = line;                               //line placeholder
 
-                    encryptedPPM[writeLine] = $"{RGB[0]}\n";
-                    encryptedPPM[writeLine+=1] = $"{RGB[1]}\n";
-                    encryptedPPM[writeLine+=1] = $"{RGB[2]}\n";
+                    encryptedPPM[writeLine] = $"{RGB[0]}\n";            //write that line of ppm text to 1st rgb value of pixel
+                    encryptedPPM[writeLine+=1] = $"{RGB[1]}\n";         //write next line to 2nd rgb value
+                    encryptedPPM[writeLine+=1] = $"{RGB[2]}\n";         //3rd line to 3rd
 
-                    line += 3;
+                    line += 3;                                          //progress 3 lines
                 }
             }
             return encryptedPPM;
         }
 
-        private string[] BitmapToP6(BitmapMaker encryptedBitmap) {
-            string[] placeholder = {};
+        private string[] BitmapToP6(BitmapMaker encryptedBitmap) {                          //Bitmap to P6
+            string[] encryptedPPM = new string[5];                                          //P6 will only be 5 lines
 
-            string[] encryptedPPM = new string[5];
-
-            encryptedPPM[0] = "P6\n";
+            encryptedPPM[0] = "P6\n";                                                       //similar process to P3
             encryptedPPM[1] = "# File created with Koraku's PPM encryption software.\n";
             encryptedPPM[2] = $"{encryptedBitmap.Width} {encryptedBitmap.Height}\n";
             encryptedPPM[3] = "255\n";
@@ -365,7 +264,7 @@ namespace ImageLoaderMessage {
                 }
                 for (x = x; x < encryptedBitmap.Width; x++) {
 
-                    byte[] RGB = encryptedBitmap.GetPixelData(x, y);
+                    byte[] RGB = encryptedBitmap.GetPixelData(x, y);                        //similar to p3, but each R/G/B byte value is cast to a char and added to line 5 of the ppm text
 
                     char P6R = (char)RGB[0];
                     char P6G = (char)RGB[1];
@@ -383,7 +282,7 @@ namespace ImageLoaderMessage {
 
         #region Encryption
 
-        private char[] BuildChars() {
+        private char[] BuildChars() {               //create array of A-Z, 1-9, and some punctuation, repeating until it reaches 256
             char[] encryptionChars = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' ', '.', ',', '!', '?', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };   //if byte / i == wholeNum
             char[] encryption = new char[256];
 
@@ -391,7 +290,7 @@ namespace ImageLoaderMessage {
 
             for (int i = 0; i < encryption.Length; i++) {
 
-                    encryption[i] = encryptionChars[j];
+                    encryption[i] = encryptionChars[j];     //populate array with repeating loop
 
                 if (j == encryptionChars.Count() - 1) {
                     j = 0;
@@ -410,49 +309,51 @@ namespace ImageLoaderMessage {
 
             char[] encryptionChars = BuildChars();          //populate encryption array
 
-            double yInc = PPMbitmap.Height / 16;
+            double yInc = PPMbitmap.Height / 16;            //which pixels to change
             double xInc = PPMbitmap.Width / 16;
 
-            yInc = Math.Floor(yInc);
+            yInc = Math.Floor(yInc);                        //always round decimal down
             xInc = Math.Floor(xInc);
 
-            int xStart = 0;
+            int xStart = 0;                                 
 
-            int y = 0;
+            int y = 0;                                      //x, y start at 0 (topleft pixel)
             int x = 0;
 
-            for (int msgChar = 0; msgChar < message.Length; msgChar++) {
-                char letter = message[msgChar];
+            for (int msgChar = 0; msgChar < message.Length; msgChar++) {                            //for each letter in the encryption message
+                char letter = message[msgChar];                                                     //current letter
 
-                x += (int)xInc;
 
-                for (x = xStart; x < PPMbitmap.Width; x += 0) {
-                    x += (int)xInc;
+                for (x = xStart; x < PPMbitmap.Width; x += 0) {                                     //scan width of bitmap
+                    x += (int)xInc;                                                                 //go to next x position
 
-                    if (x >= PPMbitmap.Width) {
-                        x = 0;
-                        y += (int)yInc;
+                    if (x >= PPMbitmap.Width) {                                                     //if it reaches the end                 
+                        x = 0;                                                                      //go back to leftmost pixel                     
+                        y += (int)yInc;                                                             //go to next y position
                     }
 
-                    byte[] pixelData = PPMbitmap.GetPixelData(x, y);
-                    int rVal = pixelData[0];                           //get red pixel (adjustment pixel)
+                    byte[] pixelData = PPMbitmap.GetPixelData(x, y);                                //get pixel data of current pixel
 
-                    for (int encVal = rVal; encVal < 256; encVal++) {
-                        if (letter == encryptionChars[encVal]) {
-                            pixelData[0] = (byte)encVal;
+                    
 
-                            byte[] RGBpixel = { pixelData[0], pixelData[1], pixelData[2] };
-                            encryptedBitmap.SetPixel(x, y, RGBpixel[0], RGBpixel[1], RGBpixel[2]);
+                    int rVal = pixelData[0];                                                        //isolate red value (for encrypting)                       <convert to function
+                                                                                                    //                                                         <convert to function
+                    for (int encVal = rVal; encVal < 256; encVal++) {                               //encVal for rgb value / encryption value                  <convert to function
+                        if (letter == encryptionChars[encVal]) {                                    //if selected letter is equal to that letter of the array  <convert to function
+                            pixelData[0] = (byte)encVal;                                            //set the red pixel to the correpsonding value             <convert to function
 
-                            xStart = x;
+                            byte[] RGBpixel = { pixelData[0], pixelData[1], pixelData[2] };         //reconstructed pixel data
+                            encryptedBitmap.SetPixel(x, y, RGBpixel[0], RGBpixel[1], RGBpixel[2]);  //set that current pixel to the new pixel data
+
+                            xStart = x;                                                             //remember where x left off
 
                             break;
 
                         } else {
-                            if (encVal == 255) {
-                                encVal = 213;
-                            } else if (encryptionChars.Contains(letter) == false) {
-                                break;
+                            if (encVal == 255) {                                                    //if it reaches the end and no value was found
+                                encVal = 213;                                                       //go back about one iteration of the enc char loop
+                            } else if (encryptionChars.Contains(letter) == false) {                 //if its not even in the array at all
+                                break;                                                              //break/skip/to be announced
                             }
                         }
                     }
@@ -477,6 +378,41 @@ namespace ImageLoaderMessage {
 
             message = TxtBoxMessage.Text;
         }
+
+        private void muiSaveP3_Click(object sender, RoutedEventArgs e) {
+            if (imgMain.Source == null) {                              //if no image selected 
+                return;                                                //cancel operation
+            } else if (publicEncryptedBitmap == null) {                //if no bitmap encrypted
+                CharOflow.Content = "Encrypt file first";              //show error
+                CharOflow.Foreground = Brushes.Red;
+                return;                                                //cancel operation
+
+            } else {
+
+                publicEncryptedPPM = BitmapToP3(publicEncryptedBitmap);  //convert public encrypted ppm to p3
+
+                HideOflowLabel();
+
+                SavePPM();
+            }
+        }
+
+        private void muiSaveP6_Click(object sender, RoutedEventArgs e) {                //similar process as P3
+            if (imgMain.Source == null) {
+                return;
+            } else if (publicEncryptedBitmap == null) {
+                CharOflow.Content = "Encrypt file first";
+                CharOflow.Foreground = Brushes.Red;
+                return;
+
+            } else {
+
+                publicEncryptedPPM = BitmapToP6(publicEncryptedBitmap);
+
+                SavePPM();
+            }
+        }
+
 
         private void Button_Click(object sender, RoutedEventArgs e) {
             if (TxtBoxMessage.Text.Length > 255) {
