@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace ImageLoaderMessage {
     /// <summary>
@@ -99,7 +100,7 @@ namespace ImageLoaderMessage {
         private void muiSaveP6_Click(object sender, RoutedEventArgs e) {
             if (imgMain.Source == null) {
                 return;
-            } else if (publicEncryptedPPM == null) {
+            } else if (publicEncryptedBitmap == null) {
                 //buffer = LoadString(globalPath);
                 CharOflow.Content = "Encrypt file first";
                 CharOflow.Foreground = Brushes.Red;
@@ -111,34 +112,38 @@ namespace ImageLoaderMessage {
 
                 HideOflowLabel();
 
-                //SaveFileDialog saveFileDialog = new SaveFileDialog();
-                //
-                //saveFileDialog.DefaultExt = ".PPM";
-                //saveFileDialog.Filter = "PPM Files (.ppm)|*.ppm";
-                //
-                //bool? result = saveFileDialog.ShowDialog();
-                //
-                //string path = saveFileDialog.FileName;
-                //
-                //if (path != null) {
-                //    FileStream outfile = new FileStream(@$"{path}", FileMode.Create);     //TODO
-                //
-                //    string buffer = "";
-                //
-                //    for (int line = 0; line < publicEncryptedPPM.Length; line++) {
-                //        buffer += publicEncryptedPPM[line];
-                //    }
-                //
-                //    char[] bufferChars = buffer.ToCharArray();
-                //
-                //    for (int i = 0; i < bufferChars.Length; i++) {
-                //        byte data = (byte)bufferChars[i];
-                //        outfile.WriteByte(data);
-                //    }
-                //    outfile.Close();
-                //}
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+
+                saveFileDialog.DefaultExt = ".PPM";
+                saveFileDialog.Filter = "PPM Files (.ppm)|*.ppm";
+
+                bool? result = saveFileDialog.ShowDialog();
+
+                string path = saveFileDialog.FileName;
+
+                if (path != null) {
+                    FileStream outfile = new FileStream(@$"{path}", FileMode.Create);
+
+                    string buffer = "";
+
+                    for (int line = 0; line < publicEncryptedPPM.Length; line++) {
+
+                        for (int i = 0; i < publicEncryptedPPM[line].Length; i++) {
+                            buffer += publicEncryptedPPM[line][i];
+                        }
+                    }
+
+                    char[] bufferChars = buffer.ToCharArray();
+
+                    for (int i = 0; i < bufferChars.Length; i++) {
+                        byte data = (byte)bufferChars[i];
+                        outfile.WriteByte(data);
+                    }
+                    outfile.Close();
+                }
             }
         }
+        
 
         private string LoadString(string path) {
             string dataString = "";
@@ -342,8 +347,36 @@ namespace ImageLoaderMessage {
 
         private string[] BitmapToP6(BitmapMaker encryptedBitmap) {
             string[] placeholder = {};
-            //TODO
-            return placeholder;
+
+            string[] encryptedPPM = new string[5];
+
+            encryptedPPM[0] = "P6\n";
+            encryptedPPM[1] = "# File created with Koraku's PPM encryption software.\n";
+            encryptedPPM[2] = $"{encryptedBitmap.Width} {encryptedBitmap.Height}\n";
+            encryptedPPM[3] = "255\n";
+            encryptedPPM[4] = "";
+
+            int y = 0;
+            int x = 0;
+
+            for (y = y; y < encryptedBitmap.Height; y++) {
+                if (x == encryptedBitmap.Width) {
+                    x = 0;
+                }
+                for (x = x; x < encryptedBitmap.Width; x++) {
+
+                    byte[] RGB = encryptedBitmap.GetPixelData(x, y);
+
+                    char P6R = (char)RGB[0];
+                    char P6G = (char)RGB[1];
+                    char P6B = (char)RGB[2];
+
+                    encryptedPPM[4] += $"{P6R}";
+                    encryptedPPM[4] += $"{P6G}";
+                    encryptedPPM[4] += $"{P6B}";
+                }
+            }
+            return encryptedPPM;
         }
 
         #endregion
@@ -351,7 +384,7 @@ namespace ImageLoaderMessage {
         #region Encryption
 
         private char[] BuildChars() {
-            char[] encryptionChars = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' ', '.', '!', '?', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };   //if byte / i == wholeNum
+            char[] encryptionChars = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' ', '.', ',', '!', '?', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };   //if byte / i == wholeNum
             char[] encryption = new char[256];
 
             int j = 0;
@@ -371,11 +404,11 @@ namespace ImageLoaderMessage {
 
         private BitmapMaker EncryptMessage(BitmapMaker PPMbitmap) {
 
-            string message = TxtBoxMessage.Text.ToUpper();
+            string message = TxtBoxMessage.Text.ToUpper();  //grab encryption box text, convert to upper
 
-            BitmapMaker encryptedBitmap = PPMbitmap;
+            BitmapMaker encryptedBitmap = PPMbitmap;        //create new Bitmap equal to original
 
-            char[] encryptionChars = BuildChars();
+            char[] encryptionChars = BuildChars();          //populate encryption array
 
             double yInc = PPMbitmap.Height / 16;
             double xInc = PPMbitmap.Width / 16;
@@ -417,7 +450,7 @@ namespace ImageLoaderMessage {
 
                         } else {
                             if (encVal == 255) {
-                                encVal = 214;
+                                encVal = 213;
                             } else if (encryptionChars.Contains(letter) == false) {
                                 break;
                             }
