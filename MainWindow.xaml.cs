@@ -106,8 +106,8 @@ namespace ImageLoaderMessage {
                 int resHeight;
                 int resWidth;
 
-                parser = int.TryParse(imgRes[0], out resHeight);                    //split height and width
-                parser = int.TryParse(imgRes[1], out resWidth);
+                parser = int.TryParse(imgRes[0], out resWidth);                    //split height and width
+                parser = int.TryParse(imgRes[1], out resHeight);
 
                 if (fileType == "P3") {                                             //determine P3 or P6
                     RGBvalues = ReadP3(PPMdata);                                    //populate RGB values
@@ -345,7 +345,6 @@ namespace ImageLoaderMessage {
 
             for (int msgChar = 0; msgChar < message.Length; msgChar++) {                            //for each letter in the encryption message
                 char letter = message[msgChar];                                                     //current letter
-
 
                 for (x = xStart; x < PPMbitmap.Width; x += 0) {                                     //scan width of bitmap
                     x += (int)xInc;                                                                 //go to next x position
