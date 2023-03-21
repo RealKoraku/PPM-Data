@@ -33,9 +33,9 @@
 
         <!-- IMAGE -->
         <Image Name="imgMain" HorizontalAlignment="Left" Height="300" Margin="11,39,0,0" VerticalAlignment="Top" Width="300" RenderTransformOrigin="0.514,0.502" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-        <TextBox Name="TxtBoxMessage" HorizontalAlignment="Left" Margin="35,100,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="180" Height="180" FontFamily="Microsoft Yi Baiti" FontSize="16" TextChanged="TxtBoxMessage_TextChanged" Background="#FF9C353F" Foreground="#FF3ABFB6" Grid.Column="1" Grid.ColumnSpan="2" BorderBrush="#FF3ABFB6"/>
+        <TextBox Name="TxtBoxMessage" HorizontalAlignment="Left" Margin="35,100,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="180" Height="180" FontFamily="Microsoft Yi Baiti" FontSize="16" TextChanged="TxtBoxMessage_TextChanged" Background="#999C353F" Foreground="#FF3ABFB6" Grid.Column="1" Grid.ColumnSpan="2" BorderBrush="#FF3ABFB6"/>
         <Label Content="Enter message (255 char. max)" HorizontalAlignment="Left" Height="35" Margin="18,62,0,0" VerticalAlignment="Top" Width="216" FontFamily="Microsoft Yi Baiti" FontSize="17" Grid.Column="1" Grid.ColumnSpan="2" Foreground="#FF3ABFB6"/>
-        <Button Name="BtnEncrypt" Content="Encrypt" Margin="47,288,105,67" FontFamily="Microsoft Yi Baiti" FontSize="16" Click="BtnEncrypt_Click" Background="#FF9C353F" Grid.Column="2" Foreground="#FF3ABFB6" BorderBrush="#FF3ABFB6"/>
+        <Button Name="BtnEncrypt" Content="Encode" Margin="47,288,105,67" FontFamily="Microsoft Yi Baiti" FontSize="16" Click="BtnEncrypt_Click" Background="#FF9C353F" Grid.Column="2" Foreground="#FF3ABFB6" BorderBrush="#FF3ABFB6"/>
         <Label Name="CharOflow" Content="Too many chars!" Margin="19,325,0,25" Grid.Column="2" FontFamily="Microsoft Yi Baiti" FontSize="17" Background="{x:Null}" Foreground="#FFC80418" HorizontalAlignment="Left" Width="135"/>
 
     </Grid>
