@@ -247,12 +247,10 @@ namespace ImageLoaderMessage {
             encryptedPPM[2] = $"{encryptedBitmap.Width} {encryptedBitmap.Height}\n";                            //set resolution
             encryptedPPM[3] = "255\n";                                                                          //set RGB channel
 
-            int y = 0;
             int x = 0;
-
             int line = 4;                                               //start at line 4 of ppm
 
-            for (y = y; y < encryptedBitmap.Height; y++) {              //scan bitmap height
+            for (int y = 0; y < encryptedBitmap.Height; y++) {          //scan bitmap height
                 if (x == encryptedBitmap.Width) {                       //if x reaches width of bitmap
                     x = 0;                                              //go back to leftmost position
                 }
@@ -281,10 +279,9 @@ namespace ImageLoaderMessage {
             encryptedPPM[3] = "255\n";
             encryptedPPM[4] = "";
 
-            int y = 0;
             int x = 0;
 
-            for (y = y; y < encryptedBitmap.Height; y++) {
+            for (int y = 0; y < encryptedBitmap.Height; y++) {
                 if (x == encryptedBitmap.Width) {
                     x = 0;
                 }

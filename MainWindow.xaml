@@ -10,7 +10,7 @@
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                 <GradientStop Color="#FFC12432"/>
-                <GradientStop Color="#FF0F8C84" Offset="1"/>
+                <GradientStop Color="#FF14AFA5" Offset="1"/>
             </LinearGradientBrush>
         </Grid.Background>
 
@@ -20,8 +20,8 @@
             <ColumnDefinition Width="227*"/>
         </Grid.ColumnDefinitions>
         <!-- MENU -->
-        <Menu Name ="mnuMain" VerticalAlignment="Top" Height="25" BorderBrush="#FFFFD8A8" Background="#FF187B74" Grid.ColumnSpan="3">
-            <MenuItem Name="muiFile" Header="File" FontFamily="Microsoft Yi Baiti" FontSize="16" Background="#FF9C353F" BorderBrush="#FF9C353F" Foreground="#FF3ABFB6">
+        <Menu Name ="mnuMain" VerticalAlignment="Top" Height="25" BorderBrush="#FFFFD8A8" Background="#FF14AFA5" Grid.ColumnSpan="3">
+            <MenuItem Name="muiFile" Header="File" FontFamily="Microsoft Yi Baiti" FontSize="16" Background="#FF9C353F" BorderBrush="#FF802029" Foreground="#FF3ABFB6" StaysOpenOnClick="True" BorderThickness="2,2,2,2">
                 <MenuItem Name="muiOpenPPM" Header="Open PPM" Click="muiOpenPPM_Click" Background="#FF9C353F" BorderBrush="#FF9C353F" Foreground="#FF3ABFB6">
                 </MenuItem>
                 <MenuItem Name="muiSavePPM" Header="Save As..." Background="#FF9C353F" BorderBrush="#FF9C353F" Foreground="#FF3ABFB6">
