@@ -24,7 +24,7 @@ namespace ImageLoaderMessage {
 
         public MainWindow() {
             InitializeComponent();
-
+            HideOflowLabel();
         }
 
         #region File dialogs / Open / Save
@@ -92,7 +92,7 @@ namespace ImageLoaderMessage {
 
             if ((fileType != "P3" && fileType != "P6") || PPMdata.Length < 5) {     //if not P3 or p6, or length < 5 (no pixel data)
                 CharOflow.Content = "Invalid file format";
-                CharOflow.Foreground = Brushes.Red;                                 //throw error
+                ShowOflowLabel();                                                   //throw error
      
             } else {
 
@@ -421,10 +421,13 @@ namespace ImageLoaderMessage {
             private void TxtBoxMessage_TextChanged(object sender, TextChangedEventArgs e) {
             string message;
 
+            var converter = new System.Windows.Media.BrushConverter();
+            var brushesCustomTeal = (Brush)converter.ConvertFromString("#FF3ABFB6");
+
             if (TxtBoxMessage.Text.Length > 255) {
                 TxtBoxMessage.Foreground = Brushes.Red;
             } else {
-                TxtBoxMessage.Foreground = Brushes.Black;
+                TxtBoxMessage.Foreground = brushesCustomTeal;
             }
 
             message = TxtBoxMessage.Text;
@@ -435,7 +438,7 @@ namespace ImageLoaderMessage {
                 return;                                                //cancel operation
             } else if (publicEncryptedBitmap == null) {                //if no bitmap encrypted
                 CharOflow.Content = "Encrypt file first";              //show error
-                CharOflow.Foreground = Brushes.Red;
+                ShowOflowLabel();
                 return;                                                //cancel operation
 
             } else {
@@ -453,7 +456,7 @@ namespace ImageLoaderMessage {
                 return;
             } else if (publicEncryptedBitmap == null) {
                 CharOflow.Content = "Encrypt file first";
-                CharOflow.Foreground = Brushes.Red;
+                ShowOflowLabel();
                 return;
 
             } else {
@@ -468,15 +471,15 @@ namespace ImageLoaderMessage {
         private void BtnEncrypt_Click(object sender, RoutedEventArgs e) {
             if (TxtBoxMessage.Text.Length > 255) {
                 CharOflow.Content = "Too many chars!";
-                CharOflow.Foreground = Brushes.Red;
+                ShowOflowLabel();
                 return;
             } else if (imgMain.Source == null) {
                 CharOflow.Content = "No file selected";
-                CharOflow.Foreground = Brushes.Red;
+                ShowOflowLabel();
                 return;
             } else if (TxtBoxMessage.Text.Length == 0) {
                 CharOflow.Content = "No message entered";
-                CharOflow.Foreground = Brushes.Red;
+                ShowOflowLabel();
                 return;
 
             } else {
@@ -493,7 +496,7 @@ namespace ImageLoaderMessage {
 
                 if (imgHeight < 16 || imgWidth < 16) {
                     CharOflow.Content = "Image must be 16x16 or greater";
-                    CharOflow.Foreground = Brushes.Red;
+                    ShowOflowLabel();
                 } else {
 
                     BitmapMaker encryptedBitmap = EncryptMessage(PPMbitmap);
@@ -504,12 +507,12 @@ namespace ImageLoaderMessage {
         }
 
         private void HideOflowLabel() {
-            var converter = new System.Windows.Media.BrushConverter();
-            var bgColor = (Brush)converter.ConvertFromString("#FFFFD8A8");
-
-            CharOflow.Foreground = bgColor;
+            CharOflow.Foreground.Opacity = 0;
         }
 
+        private void ShowOflowLabel() {
+            CharOflow.Foreground.Opacity = 100;
+        }
         #endregion
     }
 }

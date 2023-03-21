@@ -5,30 +5,38 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageLoaderMessage"
         mc:Ignorable="d"
-        Title="MainWindow" Height="400" Width="600">
-    <Grid Height="385" VerticalAlignment="Top" OpacityMask="Black" Background="#FFFFD8A8">
+        Title="PPMEncryption" Height="400" Width="600">
+    <Grid Height="385" VerticalAlignment="Top" OpacityMask="Black">
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                <GradientStop Color="#FFC12432"/>
+                <GradientStop Color="#FF0F8C84" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="11*"/>
-            <ColumnDefinition Width="9*"/>
+            <ColumnDefinition Width="330*"/>
+            <ColumnDefinition Width="43*"/>
+            <ColumnDefinition Width="227*"/>
         </Grid.ColumnDefinitions>
         <!-- MENU -->
-        <Menu Name ="mnuMain" VerticalAlignment="Top" Height="25" BorderBrush="#FFA5AB34" Background="#FFFFF0CF" Grid.ColumnSpan="2">
-            <MenuItem Name="muiFile" Header="File" FontFamily="Microsoft Yi Baiti" FontSize="16">
-                <MenuItem Name="muiOpenPPM" Header="Open PPM" Click="muiOpenPPM_Click">
+        <Menu Name ="mnuMain" VerticalAlignment="Top" Height="25" BorderBrush="#FFFFD8A8" Background="#FF187B74" Grid.ColumnSpan="3">
+            <MenuItem Name="muiFile" Header="File" FontFamily="Microsoft Yi Baiti" FontSize="16" Background="#FF9C353F" BorderBrush="#FF9C353F" Foreground="#FF3ABFB6">
+                <MenuItem Name="muiOpenPPM" Header="Open PPM" Click="muiOpenPPM_Click" Background="#FF9C353F" BorderBrush="#FF9C353F" Foreground="#FF3ABFB6">
                 </MenuItem>
-                <MenuItem Name="muiSavePPM" Header="Save As...">
-                    <MenuItem Name="muiSaveP3" Header="P3 .ppm" Click="muiSaveP3_Click"/>
-                    <MenuItem Name="muiSaveP6" Header="P6 .ppm" Click="muiSaveP6_Click"/>
+                <MenuItem Name="muiSavePPM" Header="Save As..." Background="#FF9C353F" BorderBrush="#FF9C353F" Foreground="#FF3ABFB6">
+                    <MenuItem Name="muiSaveP3" Header="P3 .ppm" Click="muiSaveP3_Click" Background="#FF9C353F" BorderBrush="#FF9C353F" Foreground="#FF3ABFB6"/>
+                    <MenuItem Name="muiSaveP6" Header="P6 .ppm" Click="muiSaveP6_Click" Background="#FF9C353F" BorderBrush="#FF9C353F" Foreground="#FF3ABFB6"/>
                 </MenuItem>
             </MenuItem>
         </Menu>
 
         <!-- IMAGE -->
         <Image Name="imgMain" HorizontalAlignment="Left" Height="300" Margin="11,39,0,0" VerticalAlignment="Top" Width="300" RenderTransformOrigin="0.514,0.502" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-        <TextBox Name="TxtBoxMessage" HorizontalAlignment="Left" Margin="35,100,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="180" Height="180" FontFamily="Microsoft Yi Baiti" FontSize="16" TextChanged="TxtBoxMessage_TextChanged" Background="#FFFFF0CF" Foreground="Black" Grid.Column="1"/>
-        <Label Content="Enter message (255 char. max)" HorizontalAlignment="Left" Height="35" Margin="25,60,0,0" VerticalAlignment="Top" Width="210" FontFamily="Microsoft Yi Baiti" FontSize="16" Grid.Column="1"/>
-        <Button Name="BtnEncrypt" Content="Encrypt" Margin="90,288,105,67" FontFamily="Microsoft Yi Baiti" FontSize="16" Click="BtnEncrypt_Click" Background="#FFFFF0CF" Grid.Column="1"/>
-        <Label Name="CharOflow" Content="Too many chars!" Margin="60,325,0,25" Grid.Column="1" FontFamily="Microsoft Yi Baiti" FontSize="16" Background="{x:Null}" Foreground="#FFFFD8A8" HorizontalAlignment="Left" Width="135"/>
+        <TextBox Name="TxtBoxMessage" HorizontalAlignment="Left" Margin="35,100,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="180" Height="180" FontFamily="Microsoft Yi Baiti" FontSize="16" TextChanged="TxtBoxMessage_TextChanged" Background="#FF9C353F" Foreground="#FF3ABFB6" Grid.Column="1" Grid.ColumnSpan="2" BorderBrush="#FF3ABFB6"/>
+        <Label Content="Enter message (255 char. max)" HorizontalAlignment="Left" Height="35" Margin="18,62,0,0" VerticalAlignment="Top" Width="216" FontFamily="Microsoft Yi Baiti" FontSize="17" Grid.Column="1" Grid.ColumnSpan="2" Foreground="#FF3ABFB6"/>
+        <Button Name="BtnEncrypt" Content="Encrypt" Margin="47,288,105,67" FontFamily="Microsoft Yi Baiti" FontSize="16" Click="BtnEncrypt_Click" Background="#FF9C353F" Grid.Column="2" Foreground="#FF3ABFB6" BorderBrush="#FF3ABFB6"/>
+        <Label Name="CharOflow" Content="Too many chars!" Margin="19,325,0,25" Grid.Column="2" FontFamily="Microsoft Yi Baiti" FontSize="17" Background="{x:Null}" Foreground="#FFC80418" HorizontalAlignment="Left" Width="135"/>
 
     </Grid>
 </Window>
