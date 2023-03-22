@@ -324,7 +324,7 @@ namespace ImageLoaderMessage {
             return encryption;
         }
 
-        private BitmapMaker EncryptMessage(BitmapMaker PPMbitmap) {
+        private BitmapMaker EncodeMessage(BitmapMaker PPMbitmap) {
 
             string message = TxtBoxMessage.Text.ToUpper();  //grab encryption box text, convert to upper
 
@@ -343,6 +343,8 @@ namespace ImageLoaderMessage {
             int y = 0;                                      //x, y start at 0 (topleft pixel)
             int x = 0;
 
+            int RGBIndex = 2;
+
             for (int msgChar = 0; msgChar < message.Length; msgChar++) {                            //for each letter in the encryption message
                 char letter = message[msgChar];                                                     //current letter
 
@@ -356,13 +358,9 @@ namespace ImageLoaderMessage {
 
                     byte[] pixelData = PPMbitmap.GetPixelData(x, y);                                //get pixel data of current pixel
 
-                    int modVal = pixelData[2];                                                      //isolate R/G/B value (for encrypting) 
-                    int RGBIndex = 2;
-
-                    int[] RGBinfo = DecideRGBValue(modVal, pixelData, RGBIndex);                    //decide if R, G, or B
-
-                    modVal = RGBinfo[0];                                                            //separate values
-                    RGBIndex = RGBinfo[1];
+                    RGBIndex = DecideRGBValue(RGBIndex);                                            //decide if R, G, or B
+                                                                                                    
+                    int modVal = pixelData[RGBIndex];                                               //assign RGB to be modified
 
                     for (int encVal = modVal; encVal < 256; encVal++) {                             //encVal for rgb value / encryption value                  
                         if (letter == encryptionChars[encVal]) {                                    //if selected letter is equal to that letter of the array  
@@ -389,25 +387,13 @@ namespace ImageLoaderMessage {
             return encryptedBitmap;
         }
 
-        private int[] DecideRGBValue(int modVal, byte[] pixelData, int RGBIndex) {
-            int[] RGBinfo = new int[2];
-
-            if (modVal == pixelData[0]) {
-                modVal = pixelData[1];
-                RGBIndex = 1;
-
-            } else if (modVal == pixelData[1]) {
-                modVal = pixelData[2];
-                RGBIndex = 2;
-
-            } else {
-                modVal = pixelData[0];
+        private int DecideRGBValue(int RGBIndex) {
+            if (RGBIndex == 2) {
                 RGBIndex = 0;
+            } else { 
+                RGBIndex++;
             }
-
-            RGBinfo[0] = modVal;
-            RGBinfo[1] = RGBIndex;
-            return RGBinfo;
+            return RGBIndex;
         }
 
         #endregion
@@ -495,7 +481,7 @@ namespace ImageLoaderMessage {
                     ShowOflowLabel();
                 } else {
 
-                    BitmapMaker encryptedBitmap = EncryptMessage(PPMbitmap);
+                    BitmapMaker encryptedBitmap = EncodeMessage(PPMbitmap);
                     imgMain.Source = encryptedBitmap.MakeBitmap();
                     publicEncryptedBitmap = encryptedBitmap;
                 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageLoaderMessage"
         mc:Ignorable="d"
-        Title="PPMEncryption" Height="400" Width="600" Icon="C:\Users\MCA\source\repos\Bitmap\ImageLoaderMessage\discIcon.jfif">
+        Title="PPMEncoder" Height="400" Width="600" Icon="C:\Users\MCA\source\repos\Bitmap\ImageLoaderMessage\discIcon.jfif">
         
     <Grid Height="385" VerticalAlignment="Top" OpacityMask="Black">
         <Grid.Background>
