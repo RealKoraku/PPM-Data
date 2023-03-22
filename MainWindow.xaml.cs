@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Printing;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -50,7 +51,36 @@ namespace ImageLoaderMessage {
             }
         }
 
-        private void SavePPM() {
+        private void SaveP3() {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();   //create save dialog
+
+            saveFileDialog.DefaultExt = ".PPM";                     //filter to ppm
+            saveFileDialog.Filter = "PPM Files (.ppm)|*.ppm";
+
+            bool? result = saveFileDialog.ShowDialog();             //open dialog
+
+            string path = saveFileDialog.FileName;
+
+            if (path != null) {
+                FileStream outfile = new FileStream(@$"{path}", FileMode.Create);   //create file at selected path
+
+                string buffer = "";
+
+                for (int line = 0; line < publicEncryptedPPM.Length; line++) {      //for each line of text in ppm
+                    buffer += publicEncryptedPPM[line];                             //add to buffer string
+                }
+
+                char[] bufferChars = buffer.ToCharArray();                          //convert string to char array
+
+                for (int i = 0; i < bufferChars.Length; i++) {                      //write each char to selected file
+                    byte data = (byte)bufferChars[i];
+                    outfile.WriteByte(data);
+                }
+                outfile.Close();                                                    //close file
+            }
+        }
+
+        private void SaveP6() {
             SaveFileDialog saveFileDialog = new SaveFileDialog();   //create save dialog
 
             saveFileDialog.DefaultExt = ".PPM";                     //filter to ppm
@@ -190,18 +220,50 @@ namespace ImageLoaderMessage {
             return RGBvalues;
         }
 
+        //private string[] GetPPMData(string path) {
+        //    string[] lines;
+        //    string data = "";
+        //    string[] records;
+        //
+        //    StreamReader inFile = new StreamReader(path);    //read data from specified file
+        //
+        //    data = inFile.ReadToEnd();
+        //
+        //    //while (inFile. < inFile.Length) {                   
+        //    //    data += (char)inFile.ReadByte();                        //add each char from text to data string
+        //    //}//end while
+        //
+        //    inFile.Close();                                             //close file
+        //
+        //    lines = data.Split("\n");                                   //split lines into string array
+        //
+        //    return lines;
+        //}
+
         private string[] GetPPMData(string path) {
             string[] lines;
             string data = "";
             string[] records;
 
-            FileStream inFile = new FileStream(path, FileMode.Open);    //read data from specified file
+            //StreamReader infile = new StreamReader(path);
 
+            //string byteData = "";
+            //
+            //for (int i = 0; i < data.Length; i++) {
+            //    byteData += (byte)data[i];
+            //}
+
+            FileStream inFile = new FileStream(path, FileMode.Open);    //read data from specified file
+            
+            data = "";
+
+            StringBuilder dataSB = new StringBuilder("");
+            
             while (inFile.Position < inFile.Length) {                   
-                data += (char)inFile.ReadByte();                        //add each char from text to data string
+                dataSB.Append((char)inFile.ReadByte());                        //add each char from text to data string
             }//end while
 
-            inFile.Close();                                             //close file
+            data = dataSB.ToString();
 
             lines = data.Split("\n");                                   //split lines into string array
 
@@ -271,6 +333,8 @@ namespace ImageLoaderMessage {
         }
 
         private string[] BitmapToP6(BitmapMaker encryptedBitmap) {                          //Bitmap to P6
+            StringBuilder dataSB = new StringBuilder("");
+            
             string[] encryptedPPM = new string[5];                                          //P6 will only be 5 lines
 
             encryptedPPM[0] = "P6\n";                                                       //similar process to P3
@@ -289,15 +353,12 @@ namespace ImageLoaderMessage {
 
                     byte[] RGB = encryptedBitmap.GetPixelData(x, y);                        //similar to p3, but each R/G/B byte value is cast to a char and added to line 5 of the ppm text
 
-                    char P6R = (char)RGB[0];
-                    char P6G = (char)RGB[1];
-                    char P6B = (char)RGB[2];
+                    string RGBstring = $"{(char)RGB[0]}{(char)RGB[1]}{(char)RGB[2]}";
 
-                    encryptedPPM[4] += $"{P6R}";
-                    encryptedPPM[4] += $"{P6G}";
-                    encryptedPPM[4] += $"{P6B}";
+                    dataSB.Append(RGBstring);
                 }
             }
+            encryptedPPM[4] = dataSB.ToString();
             return encryptedPPM;
         }
 
@@ -429,7 +490,7 @@ namespace ImageLoaderMessage {
 
                 HideOflowLabel();
 
-                SavePPM();
+                SaveP3();
             }
         }
 
@@ -445,7 +506,7 @@ namespace ImageLoaderMessage {
 
                 publicEncryptedPPM = BitmapToP6(publicEncryptedBitmap);
 
-                SavePPM();
+                SaveP6();
             }
         }
 
