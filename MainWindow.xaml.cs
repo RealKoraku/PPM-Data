@@ -293,7 +293,6 @@ namespace ImageLoaderMessage {
             inFile.Close();
 
             data = dataSB.ToString();
-
             PPMdata = data.Split("\n");                                   //split lines into string array
 
             string[] headerLines = BuildHeader(PPMdata);
@@ -486,6 +485,8 @@ namespace ImageLoaderMessage {
 
             int RGBIndex = 2;
 
+            HideMsgLength(message, encryptedBitmap);
+
             for (int msgChar = 0; msgChar < message.Length; msgChar++) {                            //for each letter in the encryption message
                 char letter = message[msgChar];                                                     //current letter
 
@@ -537,11 +538,18 @@ namespace ImageLoaderMessage {
             return RGBIndex;
         }
 
+        private void HideMsgLength(string message, BitmapMaker bitmap) {
+            byte msgLength = (byte)message.Length;
+            byte[] firstPixel = bitmap.GetPixelData(0, 0);
+
+            bitmap.SetPixel(0, 0, msgLength, firstPixel[1], firstPixel[2]);
+        }
+
         #endregion
 
         #region GUI / XAML
 
-            private void TxtBoxMessage_TextChanged(object sender, TextChangedEventArgs e) {
+        private void TxtBoxMessage_TextChanged(object sender, TextChangedEventArgs e) {
             string message;
 
             var converter = new System.Windows.Media.BrushConverter();
