@@ -241,7 +241,7 @@ namespace ImageLoaderMessage {
 
             int headerLine = 1;
             for (int line = 0; line < comments.Length; line += 0) {
-                headerData[headerLine] = comments[line];
+                headerData[headerLine] = $"{comments[line]}\n";
                 line++;
                 headerLine = line + 1;
             }
@@ -377,7 +377,7 @@ namespace ImageLoaderMessage {
 
             int PPMline = 1;
             for (int i = 0; i < comments.Length; i++) {
-                encryptedPPM[PPMline] = comments[i];
+                encryptedPPM[PPMline] = $"{comments[i]}\n";
             }
 
             encryptedPPM[comments.Length+1] = $"{encryptedBitmap.Width} {encryptedBitmap.Height}\n";                            //set resolution
@@ -542,7 +542,7 @@ namespace ImageLoaderMessage {
             byte msgLength = (byte)message.Length;
             byte[] firstPixel = bitmap.GetPixelData(0, 0);
 
-            bitmap.SetPixel(0, 0, msgLength, firstPixel[1], firstPixel[2]);
+            bitmap.SetPixel(0, 0, firstPixel[0], firstPixel[1], msgLength);
         }
 
         #endregion
