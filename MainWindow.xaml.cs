@@ -490,12 +490,13 @@ namespace ImageLoaderMessage {
             for (int msgChar = 0; msgChar < message.Length; msgChar++) {                            //for each letter in the encryption message
                 char letter = message[msgChar];                                                     //current letter
 
-                for (x = xStart; x < PPMbitmap.Width; x += 0) {                                     //scan width of bitmap
-                    x += (int)xInc;                                                                 //go to next x position
+                for (x = xStart; x < PPMbitmap.Width; x += 0) {                                     //scan width of bitmap                                                               //go to next x position
 
                     if (x >= PPMbitmap.Width) {                                                     //if it reaches the end                 
                         x = 0;                                                                      //go back to leftmost pixel                     
                         y += (int)yInc;                                                             //go to next y position
+                    } else {
+                        x += (int)xInc;
                     }
 
                     byte[] pixelData = PPMbitmap.GetPixelData(x, y);                                //get pixel data of current pixel
