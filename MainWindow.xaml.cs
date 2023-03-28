@@ -465,6 +465,7 @@ namespace ImageLoaderMessage {
         }
 
         private BitmapMaker EncodeMessage(BitmapMaker PPMbitmap) {
+            bool firstPixel = true;
 
             string message = TxtBoxMessage.Text.ToUpper();  //grab encryption box text, convert to upper
 
@@ -492,11 +493,19 @@ namespace ImageLoaderMessage {
 
                 for (x = xStart; x < PPMbitmap.Width; x += 0) {                                     //scan width of bitmap                                                               //go to next x position
 
-                    if (x >= PPMbitmap.Width) {                                                     //if it reaches the end                 
+                    if (firstPixel) {
+                        x = 0;
+                        y = 0;
+                        firstPixel = false;
+                    } else if ((x + xInc) > PPMbitmap.Width - 1) {                                             //if it reaches the end                 
                         x = 0;                                                                      //go back to leftmost pixel                     
                         y += (int)yInc;                                                             //go to next y position
                     } else {
                         x += (int)xInc;
+                    }
+
+                    if (y > PPMbitmap.Height-1) {
+                        break;
                     }
 
                     byte[] pixelData = PPMbitmap.GetPixelData(x, y);                                //get pixel data of current pixel
@@ -505,8 +514,12 @@ namespace ImageLoaderMessage {
                                                                                                     
                     int modVal = pixelData[RGBIndex];                                               //assign RGB to be modified
 
-                    for (int encVal = modVal; encVal < 256; encVal++) {                             //encVal for rgb value / encryption value                  
-                        if (letter == encryptionChars[encVal]) {                                    //if selected letter is equal to that letter of the array  
+                    for (int encVal = modVal; encVal < 256; encVal++) {                             //encVal for rgb value / encryption value                                                                          
+
+                        if (encryptionChars.Contains(letter) == false) {                            //if its not even in the array at all
+                            letter = '?';                                                           //break/skip/to be announced
+
+                        } else if (letter == encryptionChars[encVal]) {                                    //if selected letter is equal to that letter of the array  
                             pixelData[RGBIndex] = (byte)encVal;                                     //set the current pixel RGBIndex to the correpsonding value
 
                             byte[] RGBpixel = { pixelData[0], pixelData[1], pixelData[2] };         //reconstructed pixel data
@@ -519,9 +532,7 @@ namespace ImageLoaderMessage {
                         } else {
                             if (encVal == 255) {                                                    //if it reaches the end and no value was found
                                 encVal = 213;                                                       //go back about one iteration of the enc char loop
-                            } else if (encryptionChars.Contains(letter) == false) {                 //if its not even in the array at all
-                                break;                                                              //break/skip/to be announced
-                            }
+                            } 
                         }
                     }
                     break;
@@ -540,10 +551,12 @@ namespace ImageLoaderMessage {
         }
 
         private void HideMsgLength(string message, BitmapMaker bitmap) {
-            byte msgLength = (byte)message.Length;
+            int msgLengthToHide = message.Length-1;
+            byte msgLengthByte = (byte)msgLengthToHide;
+
             byte[] firstPixel = bitmap.GetPixelData(0, 0);
 
-            bitmap.SetPixel(0, 0, firstPixel[0], firstPixel[1], msgLength);
+            bitmap.SetPixel(0, 0, firstPixel[0], firstPixel[1], msgLengthByte);
         }
 
         #endregion
@@ -556,7 +569,7 @@ namespace ImageLoaderMessage {
             var converter = new System.Windows.Media.BrushConverter();
             var brushesCustomTeal = (Brush)converter.ConvertFromString("#FF3ABFB6");
 
-            if (TxtBoxMessage.Text.Length > 255) {
+            if (TxtBoxMessage.Text.Length > 256) {
                 TxtBoxMessage.Foreground = Brushes.Red;
             } else {
                 TxtBoxMessage.Foreground = brushesCustomTeal;
@@ -600,7 +613,7 @@ namespace ImageLoaderMessage {
         }
 
         private void BtnEncrypt_Click(object sender, RoutedEventArgs e) {
-            if (TxtBoxMessage.Text.Length > 255) {
+            if (TxtBoxMessage.Text.Length > 256) {
                 CharOflow.Content = "Too many chars!";
                 ShowOflowLabel();
                 return;
